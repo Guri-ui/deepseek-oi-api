@@ -1,8 +1,8 @@
-fastapi>=0.115.0
-uvicorn[standard]>=0.30.0
-httpx>=0.27.0
-pydantic>=2.8.0
-python-multipart>=0.0.9
-pycryptodome>=3.20.0
-camoufox[geoip]>=0.4.0
-playwright>=1.47.0
+fastapi==0.141.1
+uvicorn[standard]==0.52.3
+httpx==0.28.1
+pydantic==2.13.4
+python-multipart==0.0.32
+pycryptodome==3.23.0
+camoufox[geoip]==0.5.4
+playwright==1.60.0
