@@ -1,0 +1,45 @@
+# Python Bytecode & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+.venv/
+venv/
+ENV/
+
+# Authentication Tokens, Credentials & Environment Secrets
+deepseek_token.json
+deepseek_token.json.bak
+*.token.json
+.env
+.env.*
+*.pem
+*.key
+
+# Local Browser Binaries & Caches
+browsers/
+.pytest_cache/
+*.log
+
+# Internal Analysis & Specification Docs
+ANALYSIS.md
+oi-com.md
+AGENTS.md
+agents.md
+
+# Test Artifacts & Test Suites
+test_doc.txt
+test_image.png
+test_suite.py
+test_*.py
+
+# Operating System & Editor Metadata
+.DS_Store
+Thumbs.db
+*.swp
+*~
+*.tmp
+.idea/
+.vscode/
