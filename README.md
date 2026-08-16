@@ -84,13 +84,26 @@ Start the API wrapper:
 python main.py
 ```
 
-* **Base URL:** `http://localhost:8000/v1`
-* **Health Check:** `http://localhost:8000/health`
-* **Models Endpoint:** `http://localhost:8000/v1/models`
+* **Base URL:** `http://127.0.0.1:8000/v1` (or `http://localhost:8000/v1`)
+* **Health Check:** `http://127.0.0.1:8000/health`
+* **Models Endpoint:** `http://127.0.0.1:8000/v1/models`
 
-To customize the host and port:
+### Configuration Options (Environment Variables)
+
+| Variable | Default | Description |
+| :--- | :---: | :--- |
+| **`HOST`** | `127.0.0.1` | Network interface to bind (`0.0.0.0` for all LAN/VPS interfaces) |
+| **`PORT`** | `8000` | Port to listen on |
+| **`API_KEY`** | *None (Open)* | Optional secret key to require `Authorization: Bearer <KEY>` |
+| **`DEEPSEEK_TOKEN`** | *Loaded from file* | DeepSeek `userToken` (overrides `deepseek_token.json`) |
+
+**Examples:**
 ```bash
-HOST=0.0.0.0 PORT=8080 python main.py
+# Require clients to authenticate with an API key
+API_KEY="sk-my-secret-key" python main.py
+
+# Deploy on remote VPS listening on all network interfaces with API key protection
+HOST=0.0.0.0 PORT=8080 API_KEY="sk-my-secret-key" python main.py
 ```
 
 ---

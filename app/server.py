@@ -1,6 +1,7 @@
 import os
 import json
 import time
+from pathlib import Path
 from typing import Optional
 from fastapi import FastAPI, Request, HTTPException, Header, status
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -31,6 +32,57 @@ app.add_middleware(
 )
 
 ds_client = DeepSeekClient()
+
+def get_configured_api_key() -> Optional[str]:
+    """Retrieve configured API_KEY from environment or .env file."""
+    key = os.environ.get("API_KEY")
+    if not key:
+        for env_path in [Path(__file__).parent.parent / ".env", Path(".env")]:
+            if env_path.exists():
+                try:
+                    with open(env_path, "r", encoding="utf-8") as f:
+                        for line in f:
+                            line = line.strip()
+                            if line.startswith("API_KEY="):
+                                val = line.split("=", 1)[1].strip().strip("'\"")
+                                if val:
+                                    return val
+                except Exception:
+                    pass
+    return key
+
+def verify_authorization(authorization: Optional[str] = Header(None)):
+    """Enforce API_KEY if configured in environment or .env."""
+    configured_key = get_configured_api_key()
+    if not configured_key:
+        return  # Open mode: No API key required for local development
+    
+    if not authorization:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={
+                "error": {
+                    "message": "You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer format (e.g. 'Authorization: Bearer YOUR_KEY').",
+                    "type": "invalid_request_error",
+                    "param": None,
+                    "code": "missing_api_key"
+                }
+            }
+        )
+    
+    scheme, _, token = authorization.partition(" ")
+    if scheme.lower() != "bearer" or token.strip() != configured_key:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={
+                "error": {
+                    "message": "Incorrect API key provided.",
+                    "type": "invalid_request_error",
+                    "param": None,
+                    "code": "invalid_api_key"
+                }
+            }
+        )
 
 # Global JSON error response helper matching oi-com.md
 def openai_error_response(message: str, error_type: str = "invalid_request_error", code: Optional[str] = None, param: Optional[str] = None, status_code: int = 400):
@@ -72,13 +124,15 @@ def health_check():
         "status": "healthy",
         "service": "DeepSeek OpenAI-Compatible API Wrapper",
         "timestamp": int(time.time()),
-        "authenticated": bool(ds_client._user_token)
+        "authenticated": bool(ds_client._user_token),
+        "api_key_required": bool(get_configured_api_key())
     }
 
 @app.get("/v1/models", response_model=ModelListResponse)
 @app.get("/models", response_model=ModelListResponse)
-def list_models():
+def list_models(authorization: Optional[str] = Header(None)):
     """List the 6 supported DeepSeek models."""
+    verify_authorization(authorization)
     models_data = [
         ModelItem(
             id=model_id,
@@ -99,6 +153,8 @@ async def chat_completions(
     """
     OpenAI-compatible chat completion endpoint supporting streaming and non-streaming responses.
     """
+    # 1. Verify authorization if API_KEY is configured
+    verify_authorization(authorization)
     # 1. Resolve requested model
     model_cfg = resolve_model_config(request.model)
     if not model_cfg:
