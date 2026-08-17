@@ -49,7 +49,7 @@ def get_configured_api_key() -> Optional[str]:
                                     return val
                 except Exception:
                     pass
-    return key
+    return key if key else None
 
 def verify_authorization(authorization: Optional[str] = Header(None)):
     """Enforce API_KEY if configured in environment or .env."""

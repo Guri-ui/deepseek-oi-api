@@ -34,22 +34,20 @@ from app.models import (
 )
 
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
-TOKEN_FILE = PROJECT_ROOT / "deepseek_token.json"
 BASE_URL = "https://chat.deepseek.com"
 
 class DeepSeekClient:
-    def __init__(self, token_file: Path = TOKEN_FILE):
-        self.token_file = token_file
+    def __init__(self):
         self._user_token: Optional[str] = None
         self._cookies: Dict[str, str] = {}
         self.load_credentials()
 
     def load_credentials(self):
-        """Load user token and cookies from environment, .env file, or deepseek_token.json."""
+        """Load user token from environment variable or .env file."""
         # 1. Check OS environment variable
         token = os.environ.get("DEEPSEEK_TOKEN")
 
-        # 2. Check .env file if not in environment
+        # 2. Check .env file
         if not token:
             for env_path in [PROJECT_ROOT / ".env", Path(".env")]:
                 if env_path.exists():
@@ -69,25 +67,7 @@ class DeepSeekClient:
 
         if token:
             self._user_token = token
-            return
-
-        # 3. Check deepseek_token.json file
-        if self.token_file.exists():
-            try:
-                with open(self.token_file, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                    if isinstance(data, dict):
-                        self._user_token = data.get("userToken") or data.get("value") or data.get("token")
-                        cookies_list = data.get("cookies", [])
-                        for c in cookies_list:
-                            if isinstance(c, dict) and "name" in c and "value" in c:
-                                self._cookies[c["name"]] = c["value"]
-                    elif isinstance(data, str):
-                        self._user_token = data.strip()
-            except Exception as e:
-                print(f"[!] Warning: Failed to parse credentials file: {e}")
-
-        if not self._user_token:
+        else:
             print("[!] Warning: No DeepSeek userToken found. Run login.py, set DEEPSEEK_TOKEN, or add .env.")
 
     def get_headers(self, additional_headers: Optional[Dict[str, str]] = None) -> Dict[str, str]:

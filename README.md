@@ -41,13 +41,18 @@ pip install -r requirements.txt
 
 ---
 
-## 2. Authentication
+## 2. Configuration & Authentication
 
-You only need your DeepSeek account's **`userToken`**. Choose the method that best fits your environment:
+Copy the example configuration file:
+```bash
+cp .env.example .env
+```
+
+Obtain your DeepSeek account's **`userToken`** using either method:
 
 ### Method A: Headless Server / VPS (Fastest — 5 Seconds)
 
-If running on a remote server or VPS, you **do not** need to clone the repo locally to log in. Obtain the token directly from your everyday desktop browser:
+If running on a remote server or VPS, you **do not** need a desktop display:
 
 1. Open [chat.deepseek.com](https://chat.deepseek.com) in your regular browser (Chrome, Firefox, Safari, Edge) and log in with your secondary account.
 2. Open Developer Tools (<kbd>F12</kbd> or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd> / <kbd>Cmd</kbd>+<kbd>Option</kbd>+<kbd>I</kbd>) and click the **Console** tab.
@@ -56,11 +61,11 @@ If running on a remote server or VPS, you **do not** need to clone the repo loca
    copy(JSON.parse(localStorage.getItem("userToken")).value);
    ```
    *(This automatically copies your clean token to your clipboard!)*
-4. On your headless server, set the environment variable:
-   ```bash
-   export DEEPSEEK_TOKEN="<PASTE_COPIED_TOKEN>"
+4. Paste the token into your `.env` file:
+   ```ini
+   DEEPSEEK_TOKEN="<PASTE_COPIED_TOKEN>"
    ```
-   *(Or write it to `.env` / `deepseek_token.json`)*
+   *(Or set it via environment variable: `export DEEPSEEK_TOKEN="..."`)*
 
 ---
 
@@ -73,7 +78,7 @@ python login.py
 ```
 - Launches **Camoufox** anti-detect browser with local binaries in `./browsers`.
 - Complete the login interactively (Email, SMS, Google, or Apple).
-- The script automatically captures your session and saves `deepseek_token.json`.
+- The script automatically captures your token and saves it directly to `.env`.
 
 ---
 
@@ -88,18 +93,20 @@ python main.py
 * **Health Check:** `http://127.0.0.1:8000/health`
 * **Models Endpoint:** `http://127.0.0.1:8000/v1/models`
 
-### Configuration Options (Environment Variables)
+### Configuration Options (`.env` or Environment Variables)
+
+All options can be configured in `.env` or passed as environment variables:
 
 | Variable | Default | Description |
 | :--- | :---: | :--- |
+| **`DEEPSEEK_TOKEN`** | *None* | DeepSeek `userToken` for account authentication |
+| **`API_KEY`** | *None (Open)* | Optional secret key to require `Authorization: Bearer <KEY>` |
 | **`HOST`** | `127.0.0.1` | Network interface to bind (`0.0.0.0` for all LAN/VPS interfaces) |
 | **`PORT`** | `8000` | Port to listen on |
-| **`API_KEY`** | *None (Open)* | Optional secret key to require `Authorization: Bearer <KEY>` |
-| **`DEEPSEEK_TOKEN`** | *Loaded from file* | DeepSeek `userToken` (overrides `deepseek_token.json`) |
 
 **Examples:**
 ```bash
-# Require clients to authenticate with an API key
+# Start with custom environment variables
 API_KEY="sk-my-secret-key" python main.py
 
 # Deploy on remote VPS listening on all network interfaces with API key protection

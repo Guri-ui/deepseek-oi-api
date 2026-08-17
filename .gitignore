@@ -15,6 +15,7 @@ deepseek_token.json.bak
 *.token.json
 .env
 .env.*
+!.env.example
 *.pem
 *.key
 

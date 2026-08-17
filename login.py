@@ -34,20 +34,46 @@ except Exception:
 
 from camoufox.sync_api import Camoufox
 
-TOKEN_FILE = BASE_DIR / "deepseek_token.json"
+ENV_FILE = BASE_DIR / ".env"
+ENV_EXAMPLE = BASE_DIR / ".env.example"
 
-def save_credentials(token: str, user_info: dict = None, cookies: list = None):
-    data = {
-        "userToken": token,
-        "userInfo": user_info or {},
-        "cookies": cookies or [],
-        "updatedAt": int(time.time()),
-        "authHeader": f"Bearer {token}"
-    }
-    with open(TOKEN_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-    print(f"\n[+] Credentials successfully saved to: {TOKEN_FILE}")
-    print(f"[+] Token preview: {token[:12]}...{token[-8:]}")
+def save_credentials(token: str):
+    """Save user token to .env file, preserving other configurations."""
+    token = token.strip()
+    if ENV_FILE.exists():
+        content = ENV_FILE.read_text(encoding="utf-8")
+        lines = content.splitlines()
+        found = False
+        new_lines = []
+        for line in lines:
+            if line.strip().startswith("DEEPSEEK_TOKEN="):
+                new_lines.append(f"DEEPSEEK_TOKEN={token}")
+                found = True
+            else:
+                new_lines.append(line)
+        if not found:
+            new_lines.append(f"DEEPSEEK_TOKEN={token}")
+        ENV_FILE.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
+    elif ENV_EXAMPLE.exists():
+        content = ENV_EXAMPLE.read_text(encoding="utf-8")
+        lines = content.splitlines()
+        new_lines = []
+        found = False
+        for line in lines:
+            if line.strip().startswith("DEEPSEEK_TOKEN="):
+                new_lines.append(f"DEEPSEEK_TOKEN={token}")
+                found = True
+            else:
+                new_lines.append(line)
+        if not found:
+            new_lines.append(f"DEEPSEEK_TOKEN={token}")
+        ENV_FILE.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
+    else:
+        content = f"# DeepSeek Configuration\nDEEPSEEK_TOKEN={token}\nAPI_KEY=\nHOST=127.0.0.1\nPORT=8000\n"
+        ENV_FILE.write_text(content, encoding="utf-8")
+
+    print(f"\n[+] Token successfully saved to: {ENV_FILE}")
+    print(f"[+] DEEPSEEK_TOKEN={token[:12]}...{token[-8:]}")
 
 def run_login():
     print("=========================================================")
@@ -103,8 +129,7 @@ def run_login():
                 time.sleep(1)
 
         print("\n[+] Login detected successfully!")
-        cookies = page.context.cookies()
-        save_credentials(user_token, user_info, cookies)
+        save_credentials(user_token)
         page.wait_for_timeout(1000)
         return True
 
